@@ -75,7 +75,7 @@ body::before {
     rgba(0,0,0,0.012) 3px, rgba(0,0,0,0.012) 4px
   );
   pointer-events: none;
-  z-index: 1000;
+  z-index: 9999;
 }
 
 /* ───────── Header ───────── */
@@ -212,6 +212,7 @@ header {
   color: var(--text);
   margin-bottom: 10px;
   letter-spacing: -0.2px;
+  max-width: 65ch;
 }
 .post-title a {
   color: inherit;
@@ -253,6 +254,7 @@ header {
   color: var(--text);
   overflow-wrap: break-word;
   word-break: break-word;
+  max-width: 65ch;
 }
 .post-body p + p { margin-top: 12px; }
 
