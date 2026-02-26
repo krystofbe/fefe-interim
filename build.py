@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from generator import generate_site
+from generator import generate_site, generate_feed
 from scraper import fetch_posts, filter_posts
 
 
@@ -55,6 +55,10 @@ def main() -> None:
     # Step 4: Generate static site
     print("Generating static site...")
     generate_site(data, output_dir)
+
+    # Step 5: Generate RSS feed
+    generate_feed(data, output_dir)
+    print(f"Wrote RSS feed to {output_dir / 'feed.xml'}")
 
     print("Build complete")
 
