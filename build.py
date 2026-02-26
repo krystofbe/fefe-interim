@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+from generator import generate_site
 from scraper import fetch_posts, filter_posts
 
 
@@ -50,6 +51,10 @@ def main() -> None:
     }
     posts_json.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"Wrote {len(filtered)} posts to {posts_json}")
+
+    # Step 4: Generate static site
+    print("Generating static site...")
+    generate_site(data, output_dir)
 
     print("Build complete")
 
