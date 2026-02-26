@@ -9,6 +9,22 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markupsafe import Markup
 
 
+GERMAN_MONTHS = {
+    1: "Januar",
+    2: "Februar",
+    3: "März",
+    4: "April",
+    5: "Mai",
+    6: "Juni",
+    7: "Juli",
+    8: "August",
+    9: "September",
+    10: "Oktober",
+    11: "November",
+    12: "Dezember",
+}
+
+
 def _markdown_to_html(text: str) -> Markup:
     """Convert Reddit markdown to safe HTML using regex only.
 
@@ -71,6 +87,52 @@ def _tag_class(flair: str | None) -> str:
     return f"tag-{flair.lower()}"
 
 
+def _group_posts_by_month(posts: list[dict]) -> dict[tuple[int, int], list[dict]]:
+    """Group posts by (year, month) using created_utc timestamp.
+
+    Returns a dict mapping (year, month) tuples to lists of posts.
+    Posts within each month are sorted by created_utc descending (newest first).
+    """
+    grouped: dict[tuple[int, int], list[dict]] = {}
+    for post in posts:
+        dt = datetime.fromtimestamp(post["created_utc"], tz=timezone.utc)
+        key = (dt.year, dt.month)
+        if key not in grouped:
+            grouped[key] = []
+        grouped[key].append(post)
+
+    # Sort posts within each month newest first
+    for key in grouped:
+        grouped[key].sort(key=lambda p: p["created_utc"], reverse=True)
+
+    return grouped
+
+
+def _build_archive_months(grouped: dict[tuple[int, int], list[dict]]) -> list[dict]:
+    """Build the archive_months list for sidebar context.
+
+    Each entry: {"year": int, "month": int, "label": "Monat YYYY", "count": int, "path": "YYYY/MM/index.html"}
+    Sorted by date descending (newest month first).
+    """
+    months = []
+    for (year, month), posts in grouped.items():
+        label = f"{GERMAN_MONTHS[month]} {year}"
+        path = f"{year}/{month:02d}/index.html"
+        months.append(
+            {
+                "year": year,
+                "month": month,
+                "label": label,
+                "count": len(posts),
+                "path": path,
+            }
+        )
+
+    # Sort newest month first
+    months.sort(key=lambda m: (m["year"], m["month"]), reverse=True)
+    return months
+
+
 def generate_site(posts_data: dict, output_dir: Path) -> None:
     """Generate the static site HTML from posts data.
 
@@ -92,13 +154,39 @@ def generate_site(posts_data: dict, output_dir: Path) -> None:
     env.filters["format_date"] = _format_date
     env.filters["tag_class"] = _tag_class
 
+    posts = posts_data["posts"]
+
+    # Group posts by month and build archive sidebar data
+    grouped = _group_posts_by_month(posts)
+    archive_months = _build_archive_months(grouped)
+
     # Render index.html
     template = env.get_template("index.html")
-    html = template.render(posts=posts_data["posts"])
+    html = template.render(posts=posts, archive_months=archive_months)
 
     index_path = output_dir / "index.html"
     index_path.write_text(html, encoding="utf-8")
     print(f"Wrote {index_path} ({len(html)} bytes)")
+
+    # Render archive pages for each month
+    archive_template = env.get_template("archive.html")
+    archive_count = 0
+    for (year, month), month_posts in grouped.items():
+        label = f"{GERMAN_MONTHS[month]} {year}"
+        archive_dir = output_dir / str(year) / f"{month:02d}"
+        archive_dir.mkdir(parents=True, exist_ok=True)
+
+        archive_html = archive_template.render(
+            posts=month_posts,
+            month_label=label,
+            archive_months=archive_months,
+        )
+
+        archive_path = archive_dir / "index.html"
+        archive_path.write_text(archive_html, encoding="utf-8")
+        archive_count += 1
+
+    print(f"Generated {archive_count} archive pages")
 
     # Copy static assets to output dir
     static_src = Path("static")
