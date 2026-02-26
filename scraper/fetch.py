@@ -1,15 +1,16 @@
 """
-Fetch posts from r/fefe_blog_interim via Reddit's OAuth API.
+Fetch posts from r/fefe_blog_interim via Reddit's RSS/Atom feed.
 
-Uses OAuth2 "script" app credentials (client_id / client_secret) to authenticate.
-Falls back to the public JSON API if no credentials are set.
+RSS does not require authentication or API credentials and is not blocked
+on GitHub Actions datacenter IPs (unlike the JSON API which returns 403).
 """
 
 from __future__ import annotations
 
+import html
 import logging
-import os
-import time
+import re
+import xml.etree.ElementTree as ET
 
 import httpx
 
@@ -19,129 +20,164 @@ logger = logging.getLogger(__name__)
 
 SUBREDDIT = "fefe_blog_interim"
 USER_AGENT = "fefe-interim-bot/0.1 (github.com/krystofbe/fefe-interim)"
+RSS_URL = f"https://www.reddit.com/r/{SUBREDDIT}/new.rss"
 
-# OAuth credentials — set via environment variables or GitHub Actions secrets
-REDDIT_CLIENT_ID = os.environ.get("REDDIT_CLIENT_ID", "")
-REDDIT_CLIENT_SECRET = os.environ.get("REDDIT_CLIENT_SECRET", "")
+_ATOM_NS = {"atom": "http://www.w3.org/2005/Atom"}
 
-_PER_PAGE = 100  # Reddit max per request
-_SLEEP_BETWEEN_PAGES = 1  # seconds, per Reddit rate-limit guidelines
+# Strip HTML tags to get plain text (RSS content is HTML)
+_TAG_RE = re.compile(r"<[^>]+>")
+# Reddit wraps selftext in <!-- SC_OFF --><div class="md">...</div><!-- SC_ON -->
+_SC_RE = re.compile(r"<!--\s*SC_(?:ON|OFF)\s*-->")
+# "submitted by /u/... [link] [comments]" footer Reddit appends
+_SUBMITTED_RE = re.compile(
+    r"\s*submitted by\s+/u/\S+\s*\[link\]\s*\[comments\]\s*$", re.DOTALL
+)
 
 
-def _get_oauth_token() -> str | None:
-    """Obtain an OAuth2 bearer token using client credentials grant."""
-    if not REDDIT_CLIENT_ID or not REDDIT_CLIENT_SECRET:
-        return None
+def _html_to_markdown(content_html: str) -> str:
+    """Convert RSS HTML content to simple markdown.
 
+    Preserves links as markdown [text](url) and paragraphs as double newlines.
+    """
+    # Remove SC markers
+    text = _SC_RE.sub("", content_html)
+
+    # Remove "submitted by" footer
+    text = _SUBMITTED_RE.sub("", text)
+
+    # Convert <a href="url">text</a> to [text](url)
+    text = re.sub(
+        r'<a\s+href="([^"]*)"[^>]*>(.*?)</a>',
+        lambda m: f"[{m.group(2)}]({m.group(1)})" if m.group(2) != m.group(1) else m.group(1),
+        text,
+        flags=re.DOTALL,
+    )
+
+    # Convert <blockquote> to markdown >
+    text = re.sub(r"<blockquote>(.*?)</blockquote>", lambda m: "\n".join(
+        f"> {line}" for line in _TAG_RE.sub("", m.group(1)).strip().split("\n")
+    ), text, flags=re.DOTALL)
+
+    # Convert <p> to double newline
+    text = re.sub(r"</p>\s*<p>", "\n\n", text)
+    text = re.sub(r"</?p>", "\n", text)
+
+    # Convert <br/> to newline
+    text = re.sub(r"<br\s*/?>", "\n", text)
+
+    # Strip remaining tags
+    text = _TAG_RE.sub("", text)
+
+    # Unescape HTML entities
+    text = html.unescape(text)
+
+    # Clean up whitespace
+    text = re.sub(r"\n{3,}", "\n\n", text).strip()
+
+    return text
+
+
+def _parse_timestamp(date_str: str) -> float:
+    """Parse ISO 8601 date string to Unix timestamp."""
+    # RSS dates look like: 2026-02-26T20:27:39+00:00
+    from datetime import datetime, timezone
+
+    # Handle timezone offset
+    date_str = date_str.replace("+00:00", "+0000").replace("Z", "+0000")
     try:
-        response = httpx.post(
-            "https://www.reddit.com/api/v1/access_token",
-            auth=(REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET),
-            data={"grant_type": "client_credentials"},
-            headers={"User-Agent": USER_AGENT},
-            timeout=10.0,
-        )
-        response.raise_for_status()
-        token = response.json().get("access_token")
-        if token:
-            logger.info("Obtained Reddit OAuth token")
-        return token
-    except (httpx.HTTPError, KeyError) as exc:
-        logger.warning("Failed to obtain OAuth token: %s", exc)
-        return None
+        dt = datetime.fromisoformat(date_str)
+        return dt.timestamp()
+    except ValueError:
+        return 0.0
 
 
-def _parse_post(data: dict) -> Post:
-    """Parse a single Reddit listing child into a Post dataclass."""
+def _extract_post_id(entry_id: str) -> str:
+    """Extract Reddit post ID from Atom entry ID (e.g. 't3_1rfldoo' -> '1rfldoo')."""
+    if entry_id.startswith("t3_"):
+        return entry_id[3:]
+    return entry_id
+
+
+def _extract_permalink(link: str) -> str:
+    """Extract relative permalink from full Reddit URL."""
+    # https://www.reddit.com/r/fefe_blog_interim/comments/... -> /r/fefe_blog_interim/comments/...
+    if "reddit.com" in link:
+        idx = link.find("/r/")
+        if idx >= 0:
+            return link[idx:]
+    return link
+
+
+def _parse_entry(entry: ET.Element) -> Post:
+    """Parse a single Atom entry into a Post dataclass."""
+    title = entry.findtext("atom:title", "", _ATOM_NS)
+    author_name = ""
+    author_el = entry.find("atom:author/atom:name", _ATOM_NS)
+    if author_el is not None and author_el.text:
+        author_name = author_el.text.lstrip("/u/")
+
+    content_el = entry.find("atom:content", _ATOM_NS)
+    content_html = content_el.text if content_el is not None and content_el.text else ""
+
+    entry_id = entry.findtext("atom:id", "", _ATOM_NS)
+    published = entry.findtext("atom:published", "", _ATOM_NS)
+
+    link_el = entry.find("atom:link", _ATOM_NS)
+    link = link_el.get("href", "") if link_el is not None else ""
+
+    body = _html_to_markdown(content_html)
+    permalink = _extract_permalink(link)
+
     return Post(
-        id=data["id"],
-        title=data.get("title", ""),
-        body=data.get("selftext", ""),
-        score=int(data.get("score", 0)),
-        num_comments=int(data.get("num_comments", 0)),
-        created_utc=float(data.get("created_utc", 0.0)),
-        permalink=data.get("permalink", ""),
-        url=data.get("url", ""),
-        flair=data.get("link_flair_text") or None,
-        upvote_ratio=float(data.get("upvote_ratio", 0.0)),
-        author=data.get("author", ""),
+        id=_extract_post_id(entry_id),
+        title=title,
+        body=body,
+        score=0,
+        num_comments=0,
+        created_utc=_parse_timestamp(published),
+        permalink=permalink,
+        url=link,
+        flair=None,
+        upvote_ratio=0.0,
+        author=author_name,
     )
 
 
-def fetch_posts(sort: str = "new", limit: int = 500) -> list[Post]:
-    """Fetch up to *limit* posts from r/fefe_blog_interim.
+def fetch_posts(sort: str = "new", limit: int = 100) -> list[Post]:
+    """Fetch up to *limit* posts from r/fefe_blog_interim via RSS.
 
     Args:
-        sort: Reddit listing sort order ("new", "hot", "top", …).
-        limit: Maximum number of posts to collect across all pages.
+        sort: Reddit listing sort order ("new", "hot", "top").
+        limit: Maximum number of posts to collect (RSS max is ~100).
 
     Returns:
         List of Post dataclasses sorted by created_utc descending (newest first).
     """
+    url = f"https://www.reddit.com/r/{SUBREDDIT}/{sort}.rss"
+    params = {"sort": sort, "limit": min(limit, 100)}
+    headers = {"User-Agent": USER_AGENT}
+
+    try:
+        response = httpx.get(url, params=params, headers=headers, timeout=15.0)
+        response.raise_for_status()
+    except httpx.HTTPError as exc:
+        logger.warning("Error fetching RSS feed %s: %s", url, exc)
+        return []
+
+    try:
+        root = ET.fromstring(response.text)
+    except ET.ParseError as exc:
+        logger.warning("Failed to parse RSS XML: %s", exc)
+        return []
+
+    entries = root.findall("atom:entry", _ATOM_NS)
     posts: list[Post] = []
-    after: str | None = None
 
-    # Try OAuth first, fall back to public API
-    token = _get_oauth_token()
-    if token:
-        base_url = f"https://oauth.reddit.com/r/{SUBREDDIT}"
-        headers = {
-            "User-Agent": USER_AGENT,
-            "Authorization": f"Bearer {token}",
-        }
-        logger.info("Using Reddit OAuth API")
-    else:
-        base_url = f"https://www.reddit.com/r/{SUBREDDIT}"
-        headers = {"User-Agent": USER_AGENT}
-        logger.info("Using Reddit public JSON API (no credentials)")
-
-    with httpx.Client(timeout=15.0, headers=headers) as client:
-        while len(posts) < limit:
-            page_limit = min(_PER_PAGE, limit - len(posts))
-            params: dict[str, str | int] = {"limit": page_limit}
-            if after:
-                params["after"] = after
-
-            url = f"{base_url}/{sort}.json"
-            try:
-                response = client.get(url, params=params)
-                response.raise_for_status()
-            except httpx.HTTPStatusError as exc:
-                logger.warning(
-                    "HTTP error fetching %s (status %s) — returning %d posts collected so far",
-                    url,
-                    exc.response.status_code,
-                    len(posts),
-                )
-                break
-            except httpx.RequestError as exc:
-                logger.warning(
-                    "Request error fetching %s: %s — returning %d posts collected so far",
-                    url,
-                    exc,
-                    len(posts),
-                )
-                break
-
-            payload = response.json()
-            children = payload.get("data", {}).get("children", [])
-            if not children:
-                break
-
-            for child in children:
-                child_data = child.get("data", {})
-                try:
-                    posts.append(_parse_post(child_data))
-                except (KeyError, ValueError, TypeError) as exc:
-                    logger.warning("Could not parse post: %s", exc)
-
-            after = payload.get("data", {}).get("after")
-            if not after:
-                # No more pages
-                break
-
-            if len(posts) < limit:
-                time.sleep(_SLEEP_BETWEEN_PAGES)
+    for entry in entries:
+        try:
+            posts.append(_parse_entry(entry))
+        except (KeyError, ValueError, TypeError) as exc:
+            logger.warning("Could not parse RSS entry: %s", exc)
 
     # Sort newest-first by creation timestamp
     posts.sort(key=lambda p: p.created_utc, reverse=True)
