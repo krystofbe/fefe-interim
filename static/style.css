@@ -478,21 +478,21 @@ footer a:hover { color: var(--amber); }
    Responsive — mobile
    ═══════════════════════════════════════════ */
 @media (max-width: 600px) {
-  body { font-size: 16px; }
+  body { font-size: 17px; }
 
   .header-inner {
     padding: 11px 16px;
     gap: 10px;
   }
 
-  .site-title { font-size: 18px; }
+  .site-title { font-size: 20px; }
   .interim-badge { display: none; }
   .genesung-note { display: none; }
 
   .notice-bar {
     padding: 7px 16px;
   }
-  .notice-bar p { font-size: 9.5px; }
+  .notice-bar p { font-size: 11px; }
 
   .container { padding: 0 16px; }
 
@@ -503,19 +503,19 @@ footer a:hover { color: var(--amber); }
   }
 
   .post-meta {
-    font-size: 10px;
+    font-size: 11.5px;
     margin-bottom: 5px;
     gap: 8px;
   }
 
   .post-title {
-    font-size: 1.18rem;
+    font-size: 1.35rem;
     line-height: 1.32;
     margin-bottom: 8px;
   }
 
   .post-body {
-    font-size: 0.92rem;
+    font-size: 1rem;
     line-height: 1.7;
   }
 
@@ -530,7 +530,7 @@ footer a:hover { color: var(--amber); }
   }
 
   .reddit-link,
-  .comment-count { font-size: 10px; }
+  .comment-count { font-size: 11.5px; }
 
   /* Sidebar stacks single-col on small phones */
   .sidebar {
@@ -552,8 +552,8 @@ footer a:hover { color: var(--amber); }
 @media (max-width: 380px) {
   .header-inner { padding: 10px 12px; }
   .container { padding: 0 12px; }
-  .post-title { font-size: 1.1rem; }
-  .post-body { font-size: 0.88rem; }
+  .post-title { font-size: 1.25rem; }
+  .post-body { font-size: 0.95rem; }
 }
 
 /* ───────── Focus states for a11y ───────── */
