@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in_progress
-last_updated: "2026-02-26T20:23:30Z"
+status: in-progress
+last_updated: "2026-02-26T20:49:31.000Z"
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 4
 ---
 
 # Project State
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Die hochgevoteten Posts aus r/fefe_blog_interim als lesbaren, fefe-ähnlichen Blog darstellen — automatisch, kostenlos, zuverlässig.
-**Current focus:** Phase 2 — Reddit Scraper
+**Current focus:** Phase 3 — Site Generator
 
 ## Current Position
 
-Phase: 2 of 4 (Reddit Scraper)
-Plan: 2 of 2 in current phase (complete)
-Status: Phase 2, Plan 02 complete — Phase 2 fully done
-Last activity: 2026-02-26 — Plan 02-02 executed, Wilson Score filtering and fetch->filter->persist pipeline implemented
+Phase: 3 of 4 (Site Generator)
+Plan: 1 of 2 in current phase (complete)
+Status: Phase 3, Plan 01 complete — Jinja2 templates + generator module ready
+Last activity: 2026-02-26 — Plan 03-01 executed, CSS extracted, Jinja2 templates created, generator module wired into build pipeline
 
-Progress: [█████░░░░░] 60%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 1 min
-- Total execution time: 0.04 hours
+- Total plans completed: 4
+- Average duration: 2 min
+- Total execution time: 0.08 hours
 
 **By Phase:**
 
@@ -42,9 +42,10 @@ Progress: [█████░░░░░] 60%
 |-------|-------|-------|----------|
 | 01-project-foundation | 1 | 1 min | 1 min |
 | 02-reddit-scraper | 2 | 3 min | 1.5 min |
+| 03-site-generator | 1 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 1 min
+- Last 5 plans: 2 min
 - Trend: -
 
 *Updated after each plan completion*
@@ -71,6 +72,10 @@ Recent decisions affecting current work:
 - 02-02: score used as total_votes proxy in Wilson formula — best available signal from Reddit
 - 02-02: ensure_ascii=False in json.dumps — preserves German umlauts in posts.json
 - 02-02: min_score=3 noise floor before Wilson computation to prevent skewing the median threshold
+- 03-01: grid-template-columns: 1fr in .container (no sidebar yet — 03-02 updates to 1fr 230px)
+- 03-01: markdown_to_html uses regex only (no external markdown library per plan spec)
+- 03-01: tag-fefe CSS class added for fefe flair type present in real posts but absent from prototype
+- 03-01: generate_site accepts posts_data dict directly to avoid re-reading posts.json
 
 ### Pending Todos
 
@@ -83,5 +88,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 02-02-PLAN.md — Wilson Score filtering, fetch->filter->persist pipeline, output/posts.json
+Stopped at: Completed 03-01-PLAN.md — Jinja2 templates + site generator module + build pipeline Step 4
 Resume file: None

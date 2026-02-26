@@ -30,6 +30,51 @@
 
 <div class="container">
   {% block content %}{% endblock %}
+
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Status</div>
+      <div class="health-indicator">
+        <div class="pulse-dot"></div>
+        <span class="status-label">interim · aktiv</span>
+      </div>
+      <div class="sidebar-text">
+        <p>fefes Blog ist derzeit offline. Diese Seite kuratiert Community-Posts als Ersatz.</p>
+        <p><a href="https://blog.fefe.de" target="_blank">→ blog.fefe.de</a></p>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Über</div>
+      <div class="quote-block">
+        <p>"Ich blogge hier über das, worüber ich mich gerade aufrege."</p>
+        <cite>— Felix von Leitner, seit 2005</cite>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Archiv</div>
+      <div class="archive-links">
+        {% for month in archive_months %}
+        <a href="/{{ month.path }}" class="archive-link">
+          <span>{{ month.label }}</span>
+          <span class="count">{{ month.count }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Tags</div>
+      <div class="tags-wrap">
+        <span class="tag tag-security">Security</span>
+        <span class="tag tag-politik">Politik</span>
+        <span class="tag tag-wirtschaft">Wirtschaft</span>
+        <span class="tag tag-netz">Netz</span>
+        <span class="tag tag-gesellschaft">Gesellschaft</span>
+      </div>
+    </div>
+  </aside>
 </div>
 
 <footer>

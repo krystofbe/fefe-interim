@@ -127,7 +127,7 @@ header {
   margin: 0 auto;
   padding: 0 28px;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 230px;
   gap: 64px;
   align-items: start;
 }
