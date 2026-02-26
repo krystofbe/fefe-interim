@@ -6,15 +6,15 @@
   <title>{% block title %}fefe's blog — interim{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css">
-  <link rel="alternate" type="application/rss+xml" title="fefe's blog — interim RSS Feed" href="/feed.xml">
+  <link rel="stylesheet" href="{{ base_url }}static/style.css">
+  <link rel="alternate" type="application/rss+xml" title="fefe's blog — interim RSS Feed" href="{{ base_url }}feed.xml">
   {% block head_extra %}{% endblock %}
 </head>
 <body>
 
 <header>
   <div class="header-inner">
-    <a href="/" class="site-title">fefe<span class="blink">_</span></a>
+    <a href="{{ base_url }}" class="site-title">fefe<span class="blink">_</span></a>
     <span class="interim-badge">Interim</span>
     <span class="genesung-note">gute besserung 🖤</span>
   </div>
@@ -57,7 +57,7 @@
       <div class="sidebar-title">Archiv</div>
       <div class="archive-links">
         {% for month in archive_months %}
-        <a href="/{{ month.path }}" class="archive-link">
+        <a href="{{ base_url }}{{ month.path }}" class="archive-link">
           <span>{{ month.label }}</span>
           <span class="count">{{ month.count }}</span>
         </a>

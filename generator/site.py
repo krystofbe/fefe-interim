@@ -133,12 +133,15 @@ def _build_archive_months(grouped: dict[tuple[int, int], list[dict]]) -> list[di
     return months
 
 
-def generate_site(posts_data: dict, output_dir: Path) -> None:
+def generate_site(posts_data: dict, output_dir: Path, base_url: str = "") -> None:
     """Generate the static site HTML from posts data.
 
     Args:
         posts_data: Dict with 'posts' list (from posts.json structure)
         output_dir: Directory to write output files to
+        base_url: Base URL prefix for internal links (e.g. "" for root or "../../" for
+                  archive pages). When called from build.py this is left as "" for
+                  index.html; archive pages automatically receive "../../".
     """
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -160,17 +163,20 @@ def generate_site(posts_data: dict, output_dir: Path) -> None:
     grouped = _group_posts_by_month(posts)
     archive_months = _build_archive_months(grouped)
 
-    # Render index.html
+    # Render index.html (at root, so base_url is empty — links are relative to root)
     template = env.get_template("index.html")
-    html = template.render(posts=posts, archive_months=archive_months)
+    html = template.render(posts=posts, archive_months=archive_months, base_url=base_url)
 
     index_path = output_dir / "index.html"
     index_path.write_text(html, encoding="utf-8")
     print(f"Wrote {index_path} ({len(html)} bytes)")
 
     # Render archive pages for each month
+    # Archive pages live at YYYY/MM/index.html (2 directories deep), so they
+    # need "../../" to reach the root for CSS, feed.xml, and home links.
     archive_template = env.get_template("archive.html")
     archive_count = 0
+    archive_base_url = "../../"
     for (year, month), month_posts in grouped.items():
         label = f"{GERMAN_MONTHS[month]} {year}"
         archive_dir = output_dir / str(year) / f"{month:02d}"
@@ -180,6 +186,7 @@ def generate_site(posts_data: dict, output_dir: Path) -> None:
             posts=month_posts,
             month_label=label,
             archive_months=archive_months,
+            base_url=archive_base_url,
         )
 
         archive_path = archive_dir / "index.html"

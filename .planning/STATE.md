@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in-progress
-last_updated: "2026-02-26T20:49:31.000Z"
+status: unknown
+last_updated: "2026-02-26T21:17:40Z"
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 5
+  completed_phases: 3
+  total_plans: 7
+  completed_plans: 7
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Die hochgevoteten Posts aus r/fefe_blog_interim als lesbaren, fefe-ähnlichen Blog darstellen — automatisch, kostenlos, zuverlässig.
-**Current focus:** Phase 3 — Site Generator
+**Current focus:** Phase 4 — Deployment Automation
 
 ## Current Position
 
-Phase: 3 of 4 (Site Generator)
-Plan: 3 of 3 in current phase (complete)
-Status: Phase 3, Plan 03 complete — RSS feed generator + auto-discovery link ready
-Last activity: 2026-02-26 — Plan 03-03 executed, RSS feed generator created, wired into build pipeline
+Phase: 4 of 4 (Deployment Automation)
+Plan: 1 of 1 in current phase — CHECKPOINT: awaiting human-action (GitHub repo setup + push)
+Status: Phase 4, Plan 01 Task 1 complete — workflow committed, waiting for GitHub repo + push
+Last activity: 2026-02-26 — Plan 04-01 Task 1 executed, GitHub Actions workflow created
 
-Progress: [████████░░] 83%
+Progress: [██████████] 95%
 
 ## Performance Metrics
 
@@ -43,6 +43,7 @@ Progress: [████████░░] 83%
 | 01-project-foundation | 1 | 1 min | 1 min |
 | 02-reddit-scraper | 2 | 3 min | 1.5 min |
 | 03-site-generator | 3 | 4 min | 1.3 min |
+| 04-deployment-automation | 1 | 3 min | 3 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min
@@ -82,6 +83,11 @@ Recent decisions affecting current work:
 - 03-03: stdlib xml.etree.ElementTree only — no feedgen dependency (per plan spec)
 - 03-03: lastBuildDate derived from most recent post's created_utc timestamp
 - 03-03: RSS auto-discovery link placed directly in base.html before head_extra block
+- 04-01: Single workflow for push+cron+dispatch triggers (not two separate workflows)
+- 04-01: cancel-in-progress: false — ensures running deployments complete, not cancelled mid-deploy
+- 04-01: Cron at 06:00 UTC — morning update for German timezone readers
+- 04-01: output/ gitignored — workflow generates fresh each run, no stale artifacts committed
+- 04-01: actions/upload-pages-artifact@v3 + actions/deploy-pages@v4 — modern method, no gh-pages branch needed
 
 ### Pending Todos
 
@@ -94,5 +100,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 03-03-PLAN.md — RSS feed generator, output/feed.xml, build pipeline Step 5
+Stopped at: 04-01 Task 2 checkpoint (human-action) — GitHub repo setup + push required
 Resume file: None

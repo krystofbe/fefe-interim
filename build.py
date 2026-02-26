@@ -1,11 +1,17 @@
 """fefe-interim build pipeline."""
 
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
 from generator import generate_site, generate_feed
 from scraper import fetch_posts, filter_posts
+
+# Base URL for the live site. Override via environment variable for local testing
+# or alternative hosting. Must NOT have a trailing slash.
+# Example: SITE_URL="" python build.py  (for local file:// testing)
+SITE_URL = os.environ.get("SITE_URL", "https://krystofbe.github.io/fefe-interim")
 
 
 def main() -> None:
@@ -54,10 +60,11 @@ def main() -> None:
 
     # Step 4: Generate static site
     print("Generating static site...")
+    print(f"Using SITE_URL: {SITE_URL}")
     generate_site(data, output_dir)
 
-    # Step 5: Generate RSS feed
-    generate_feed(data, output_dir)
+    # Step 5: Generate RSS feed with the live site URL
+    generate_feed(data, output_dir, site_url=SITE_URL)
     print(f"Wrote RSS feed to {output_dir / 'feed.xml'}")
 
     print("Build complete")
