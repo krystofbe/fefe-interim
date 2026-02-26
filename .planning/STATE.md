@@ -8,7 +8,7 @@ progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -23,11 +23,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 Phase: 3 of 4 (Site Generator)
-Plan: 1 of 2 in current phase (complete)
-Status: Phase 3, Plan 01 complete — Jinja2 templates + generator module ready
-Last activity: 2026-02-26 — Plan 03-01 executed, CSS extracted, Jinja2 templates created, generator module wired into build pipeline
+Plan: 3 of 3 in current phase (complete)
+Status: Phase 3, Plan 03 complete — RSS feed generator + auto-discovery link ready
+Last activity: 2026-02-26 — Plan 03-03 executed, RSS feed generator created, wired into build pipeline
 
-Progress: [███████░░░] 70%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
@@ -42,7 +42,7 @@ Progress: [███████░░░] 70%
 |-------|-------|-------|----------|
 | 01-project-foundation | 1 | 1 min | 1 min |
 | 02-reddit-scraper | 2 | 3 min | 1.5 min |
-| 03-site-generator | 1 | 3 min | 3 min |
+| 03-site-generator | 3 | 4 min | 1.3 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min
@@ -76,6 +76,12 @@ Recent decisions affecting current work:
 - 03-01: markdown_to_html uses regex only (no external markdown library per plan spec)
 - 03-01: tag-fefe CSS class added for fefe flair type present in real posts but absent from prototype
 - 03-01: generate_site accepts posts_data dict directly to avoid re-reading posts.json
+- 03-02: archive_months context passed to all template renders — sidebar consistent on index and archive pages
+- 03-02: German month names via static GERMAN_MONTHS dict — no locale dependency
+- 03-02: Archive URLs use zero-padded month format YYYY/MM/index.html
+- 03-03: stdlib xml.etree.ElementTree only — no feedgen dependency (per plan spec)
+- 03-03: lastBuildDate derived from most recent post's created_utc timestamp
+- 03-03: RSS auto-discovery link placed directly in base.html before head_extra block
 
 ### Pending Todos
 
@@ -88,5 +94,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 03-01-PLAN.md — Jinja2 templates + site generator module + build pipeline Step 4
+Stopped at: Completed 03-03-PLAN.md — RSS feed generator, output/feed.xml, build pipeline Step 5
 Resume file: None
