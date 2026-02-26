@@ -28,9 +28,14 @@ _ATOM_NS = {"atom": "http://www.w3.org/2005/Atom"}
 _TAG_RE = re.compile(r"<[^>]+>")
 # Reddit wraps selftext in <!-- SC_OFF --><div class="md">...</div><!-- SC_ON -->
 _SC_RE = re.compile(r"<!--\s*SC_(?:ON|OFF)\s*-->")
-# "submitted by /u/... [link] [comments]" footer Reddit appends
+# "submitted by /u/... [link] [comments]" footer Reddit appends (HTML and text variants)
+_SUBMITTED_HTML_RE = re.compile(
+    r'\s*&amp;#32;\s*submitted by\s*&amp;#32;.*?\[link\].*?\[comments\].*$',
+    re.DOTALL,
+)
 _SUBMITTED_RE = re.compile(
-    r"\s*submitted by\s+/u/\S+\s*\[link\]\s*\[comments\]\s*$", re.DOTALL
+    r"\s*submitted by\s+/u/\S+\s*\[?\[?link\]?\]?\s*\[?\[?comments\]?\]?\s*$",
+    re.DOTALL,
 )
 
 
@@ -42,8 +47,8 @@ def _html_to_markdown(content_html: str) -> str:
     # Remove SC markers
     text = _SC_RE.sub("", content_html)
 
-    # Remove "submitted by" footer
-    text = _SUBMITTED_RE.sub("", text)
+    # Remove "submitted by" footer (HTML version before tag stripping)
+    text = _SUBMITTED_HTML_RE.sub("", text)
 
     # Convert <a href="url">text</a> to [text](url)
     text = re.sub(
