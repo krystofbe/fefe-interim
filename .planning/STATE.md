@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-02-26T21:17:40Z"
+last_updated: "2026-02-26T21:26:16Z"
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  completed_phases: 4
+  total_plans: 8
+  completed_plans: 8
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Die hochgevoteten Posts aus r/fefe_blog_interim als lesbaren, fefe-ähnlichen Blog darstellen — automatisch, kostenlos, zuverlässig.
-**Current focus:** Phase 4 — Deployment Automation
+**Current focus:** Phase 4 — Deployment Automation (COMPLETE)
 
 ## Current Position
 
-Phase: 4 of 4 (Deployment Automation)
-Plan: 1 of 1 in current phase — CHECKPOINT: awaiting human-action (GitHub repo setup + push)
-Status: Phase 4, Plan 01 Task 1 complete — workflow committed, waiting for GitHub repo + push
-Last activity: 2026-02-26 — Plan 04-01 Task 1 executed, GitHub Actions workflow created
+Phase: 4 of 4 (Deployment Automation) — COMPLETE
+Plan: 2 of 2 in current phase — COMPLETE
+Status: All phases and plans complete — project shipped to GitHub Pages
+Last activity: 2026-02-26 — Plan 04-02 complete: GitHub Pages URL fix with base_url templating
 
-Progress: [██████████] 95%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -43,7 +43,7 @@ Progress: [██████████] 95%
 | 01-project-foundation | 1 | 1 min | 1 min |
 | 02-reddit-scraper | 2 | 3 min | 1.5 min |
 | 03-site-generator | 3 | 4 min | 1.3 min |
-| 04-deployment-automation | 1 | 3 min | 3 min |
+| 04-deployment-automation | 2 | 6 min | 3 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min
@@ -88,6 +88,9 @@ Recent decisions affecting current work:
 - 04-01: Cron at 06:00 UTC — morning update for German timezone readers
 - 04-01: output/ gitignored — workflow generates fresh each run, no stale artifacts committed
 - 04-01: actions/upload-pages-artifact@v3 + actions/deploy-pages@v4 — modern method, no gh-pages branch needed
+- 04-02: base_url template variable pattern — index passes "", archive pages pass "../../"
+- 04-02: SITE_URL env var with default — os.environ.get override for local testing or custom domains
+- 04-02: SITE_URL only passed to generate_feed; HTML uses purely relative paths for portability
 
 ### Pending Todos
 
@@ -100,5 +103,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: 04-01 Task 2 checkpoint (human-action) — GitHub repo setup + push required
+Stopped at: Completed 04-02-PLAN.md — all phases complete, project shipped
 Resume file: None

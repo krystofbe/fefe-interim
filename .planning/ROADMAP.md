@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Project Foundation** - Projektstruktur, uv-Setup und lokaler Build-Einstiegspunkt (completed 2026-02-26)
 - [x] **Phase 2: Reddit Scraper** - Daten holen, filtern und als JSON persistieren (completed 2026-02-26)
 - [x] **Phase 3: Site Generator** - Statisches HTML + RSS aus Scraped-Daten generieren (completed 2026-02-26)
-- [x] **Phase 4: Deployment & Automation** - GitHub Pages Hosting und GitHub Actions Cron-Job (in progress — awaiting human-action checkpoint)
+- [x] **Phase 4: Deployment & Automation** - GitHub Pages Hosting und GitHub Actions Cron-Job (completed 2026-02-26)
 
 ## Phase Details
 
@@ -72,10 +72,11 @@ Plans:
   1. Die Site ist unter einer GitHub Pages URL öffentlich aufrufbar
   2. Ein GitHub Actions Workflow läuft automatisch (Cron-Schedule), scrapt Posts und pusht neue HTML-Dateien
   3. Playwright MCP Browser-Test bestätigt: Seite lädt, Posts sind sichtbar, Sidebar ist sichtbar, RSS-Link funktioniert
-**Plans**: 1/1
+**Plans**: 2/2
 
 Plans:
 - [x] 04-01-PLAN.md — GitHub Pages Konfiguration und GitHub Actions Workflow mit Cron-Job
+- [x] 04-02-PLAN.md — GitHub Pages URL Fix: base_url templating für relative Pfade
 
 ## Progress
 
@@ -87,4 +88,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Project Foundation | 1/1 | Complete   | 2026-02-26 |
 | 2. Reddit Scraper | 2/2 | Complete   | 2026-02-26 |
 | 3. Site Generator | 3/3 | Complete   | 2026-02-26 |
-| 4. Deployment & Automation | 1/1 | Checkpoint (human-action) | - |
+| 4. Deployment & Automation | 2/2 | Complete | 2026-02-26 |
