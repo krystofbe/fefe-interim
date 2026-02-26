@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}fefe's blog — interim{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="/" class="site-title">fefe<span class="blink">_</span></a>
+    <span class="interim-badge">Interim</span>
+    <span class="genesung-note">gute besserung 🖤</span>
+  </div>
+</header>
+
+<div class="notice-bar">
+  <p>
+    Inoffizieller Ersatz während fefes Pause &nbsp;·&nbsp;
+    Quelle: <a href="https://www.reddit.com/r/fefe_blog_interim/" target="_blank">r/fefe_blog_interim</a>
+    &nbsp;·&nbsp;
+    Original: <a href="https://blog.fefe.de" target="_blank">blog.fefe.de</a>
+  </p>
+</div>
+
+<div class="container">
+  {% block content %}{% endblock %}
+</div>
+
+<footer>
+  inoffizieller fefe blog interim &nbsp;·&nbsp; keine Zugehörigkeit zu Felix von Leitner &nbsp;·&nbsp;
+  Quelle: <a href="https://www.reddit.com/r/fefe_blog_interim/" target="_blank">r/fefe_blog_interim</a>
+</footer>
+
+</body>
+</html>
