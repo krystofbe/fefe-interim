@@ -39,18 +39,16 @@
     --focus-ring: 0 0 0 2px rgba(224,154,58,0.4);
   }
   ::selection { background: var(--amber); color: var(--bg); }
-  body::before {
-    background: repeating-linear-gradient(
-      0deg, transparent, transparent 3px,
-      rgba(255,255,255,0.008) 3px, rgba(255,255,255,0.008) 4px
-    );
-  }
 }
 
 /* --- Reset --- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* --- Base --- */
+html {
+  background: var(--bg);
+}
+
 body {
   background: var(--bg);
   color: var(--text);
@@ -61,22 +59,11 @@ body {
   -webkit-text-size-adjust: 100%;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
 }
 
 ::selection { background: var(--amber); color: #fff; }
-
-/* subtle CRT scanline */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg, transparent, transparent 3px,
-    rgba(0,0,0,0.012) 3px, rgba(0,0,0,0.012) 4px
-  );
-  pointer-events: none;
-  z-index: 9999;
-}
 
 /* ───────── Header ───────── */
 header {
@@ -84,8 +71,9 @@ header {
   background: var(--bg);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 9999;
   padding-top: env(safe-area-inset-top, 0px);
+  -webkit-transform: translateZ(0);
 }
 
 @supports (backdrop-filter: blur(10px)) {
