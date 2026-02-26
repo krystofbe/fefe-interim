@@ -83,13 +83,7 @@ header {
   -webkit-transform: translateZ(0);
 }
 
-@supports (backdrop-filter: blur(10px)) {
-  header {
-    background: color-mix(in srgb, var(--bg) 82%, transparent);
-    backdrop-filter: blur(10px) saturate(1.2);
-    -webkit-backdrop-filter: blur(10px) saturate(1.2);
-  }
-}
+/* backdrop blur disabled — causes safe area transparency on iOS */
 
 .header-inner {
   max-width: 860px;
