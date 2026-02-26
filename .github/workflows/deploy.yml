@@ -36,6 +36,9 @@ jobs:
 
       - name: Build site
         run: uv run python build.py
+        env:
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
 
       - name: Add .nojekyll
         run: touch output/.nojekyll

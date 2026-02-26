@@ -1,13 +1,14 @@
 """
-Fetch posts from r/fefe_blog_interim via Reddit's public JSON API.
+Fetch posts from r/fefe_blog_interim via Reddit's OAuth API.
 
-No authentication required — Reddit allows anonymous access to public subreddits
-via the .json suffix on any listing URL.
+Uses OAuth2 "script" app credentials (client_id / client_secret) to authenticate.
+Falls back to the public JSON API if no credentials are set.
 """
 
 from __future__ import annotations
 
 import logging
+import os
 import time
 
 import httpx
@@ -17,11 +18,37 @@ from scraper.types import Post
 logger = logging.getLogger(__name__)
 
 SUBREDDIT = "fefe_blog_interim"
-USER_AGENT = "fefe-interim-bot/0.1 (github.com/krystof/fefe-interim)"
-BASE_URL = f"https://www.reddit.com/r/{SUBREDDIT}"
+USER_AGENT = "fefe-interim-bot/0.1 (github.com/krystofbe/fefe-interim)"
+
+# OAuth credentials — set via environment variables or GitHub Actions secrets
+REDDIT_CLIENT_ID = os.environ.get("REDDIT_CLIENT_ID", "")
+REDDIT_CLIENT_SECRET = os.environ.get("REDDIT_CLIENT_SECRET", "")
 
 _PER_PAGE = 100  # Reddit max per request
 _SLEEP_BETWEEN_PAGES = 1  # seconds, per Reddit rate-limit guidelines
+
+
+def _get_oauth_token() -> str | None:
+    """Obtain an OAuth2 bearer token using client credentials grant."""
+    if not REDDIT_CLIENT_ID or not REDDIT_CLIENT_SECRET:
+        return None
+
+    try:
+        response = httpx.post(
+            "https://www.reddit.com/api/v1/access_token",
+            auth=(REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET),
+            data={"grant_type": "client_credentials"},
+            headers={"User-Agent": USER_AGENT},
+            timeout=10.0,
+        )
+        response.raise_for_status()
+        token = response.json().get("access_token")
+        if token:
+            logger.info("Obtained Reddit OAuth token")
+        return token
+    except (httpx.HTTPError, KeyError) as exc:
+        logger.warning("Failed to obtain OAuth token: %s", exc)
+        return None
 
 
 def _parse_post(data: dict) -> Post:
@@ -54,7 +81,19 @@ def fetch_posts(sort: str = "new", limit: int = 500) -> list[Post]:
     posts: list[Post] = []
     after: str | None = None
 
-    headers = {"User-Agent": USER_AGENT}
+    # Try OAuth first, fall back to public API
+    token = _get_oauth_token()
+    if token:
+        base_url = f"https://oauth.reddit.com/r/{SUBREDDIT}"
+        headers = {
+            "User-Agent": USER_AGENT,
+            "Authorization": f"Bearer {token}",
+        }
+        logger.info("Using Reddit OAuth API")
+    else:
+        base_url = f"https://www.reddit.com/r/{SUBREDDIT}"
+        headers = {"User-Agent": USER_AGENT}
+        logger.info("Using Reddit public JSON API (no credentials)")
 
     with httpx.Client(timeout=15.0, headers=headers) as client:
         while len(posts) < limit:
@@ -63,7 +102,7 @@ def fetch_posts(sort: str = "new", limit: int = 500) -> list[Post]:
             if after:
                 params["after"] = after
 
-            url = f"{BASE_URL}/{sort}.json"
+            url = f"{base_url}/{sort}.json"
             try:
                 response = client.get(url, params=params)
                 response.raise_for_status()
